@@ -1,4 +1,4 @@
-# zig-animation
+# zig-animate
 A property animation library in Zig.
 
 ## Demo 1: Property Interpolation

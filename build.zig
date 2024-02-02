@@ -4,6 +4,11 @@ const std = @import("std");
 // declaratively construct a build graph that will be executed by an external
 // runner.
 pub fn build(b: *std.Build) void {
+    // Setup Module
+    const animate_mod = b.addModule("animate", .{
+        .root_source_file = .{ .path = "src/main.zig" },
+    });
+
     // Standard target options allows the person running `zig build` to choose
     // what target to build for. Here we do not override the defaults, which
     // means any target is allowed, and the default is native. Other options
@@ -14,20 +19,6 @@ pub fn build(b: *std.Build) void {
     // between Debug, ReleaseSafe, ReleaseFast, and ReleaseSmall. Here we do not
     // set a preferred release mode, allowing the user to decide how to optimize.
     const optimize = b.standardOptimizeOption(.{});
-
-    const lib = b.addStaticLibrary(.{
-        .name = "zig-animation",
-        // In this case the main source file is merely a path, however, in more
-        // complicated build scripts, this could be a generated file.
-        .root_source_file = .{ .path = "src/main.zig" },
-        .target = target,
-        .optimize = optimize,
-    });
-
-    // This declares intent for the library to be installed into the standard
-    // location when the user invokes the "install" step (the default step when
-    // running `zig build`).
-    b.installArtifact(lib);
 
     // Creates a step for unit testing. This only builds the test executable
     // but does not run it.
@@ -44,4 +35,19 @@ pub fn build(b: *std.Build) void {
     // This will evaluate the `test` step rather than the default, which is "install".
     const test_step = b.step("test", "Run library tests");
     test_step.dependOn(&run_main_tests.step);
+
+    const demo = b.addExecutable(.{
+        .name = "demo",
+        .root_source_file = .{ .path = "demo/demo.zig" },
+        .target = target,
+        .optimize = optimize,
+        .link_libc = false,
+    });
+
+    demo.root_module.addImport("animate", animate_mod);
+
+    const run_demo = b.addRunArtifact(demo);
+
+    const run_demo_step = b.step("demo", "Run demo");
+    run_demo_step.dependOn(&run_demo.step);
 }

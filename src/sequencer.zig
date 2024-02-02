@@ -16,7 +16,7 @@ pub const Event = union(enum) {
         execute: *const fn (usize, usize, f32) void,
     },
 
-    fn create_action(comptime Data: type, ptr: *Data, callback: fn (ptr: *Data) void) Event {
+    pub fn create_action(comptime Data: type, ptr: *Data, callback: fn (ptr: *Data) void) Event {
         const execute_fn = struct {
             fn execute(p: usize) void {
                 const obj = @as(*Data, @ptrFromInt(p));
@@ -32,7 +32,7 @@ pub const Event = union(enum) {
         };
     }
 
-    fn create_transition(comptime Data: type, comptime Property: type, ptr: *Data, anim: *const animator.Animator(Property), duration: f32, callback: fn (ptr: *Data, property: Property) void) Event {
+    pub fn create_transition(comptime Data: type, comptime Property: type, ptr: *Data, anim: *const animator.Animator(Property), duration: f32, callback: fn (ptr: *Data, property: Property) void) Event {
         const execute_fn = struct {
             fn execute(p: usize, a: usize, t: f32) void {
                 const anim2 = @as(*const animator.Animator(Property), @ptrFromInt(a));
