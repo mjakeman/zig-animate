@@ -10,13 +10,13 @@ inline fn clamp(x: f32, min: f32, max: f32) f32 {
     }
 }
 
-pub fn Animator(T: type) type {
+pub fn Animator(comptime T: type) type {
     return struct {
         easing_func: *const fn (T, T, f32) T, // See zig
         start: T,
         end: T,
 
-        pub fn init(start: T, end: T, easing_func: fn (T, T, f32) T) Animator(T) {
+        pub fn init(start: T, end: T, easing_func: *const fn (T, T, f32) T) Animator(T) {
             return Animator(T){
                 .easing_func = easing_func,
                 .start = start,

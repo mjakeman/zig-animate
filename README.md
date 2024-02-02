@@ -1,6 +1,8 @@
 # zig-animation
 A property animation library in Zig.
 
+Zig Version: `0.12.0-dev.1137+fbbccc9d5`
+
 ## Demo 1: Property Interpolation
 Full demo code in [`animator.zig`](src/animator.zig).
 
@@ -71,6 +73,13 @@ The three files in this library are:
 In each source file, there are fully-commented tests demonstrating some key patterns.
 
 For example, see [sequencer.zig](/src/sequencer.zig).
+
+## Building
+Standard Zig library:
+```
+zig build
+zig build test --summary all
+```
 
 ## About
 This repo is a mirror of the in-tree animation library from my personal game engine project. As such, this library is actively (albeit infrequently) maintained.

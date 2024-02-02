@@ -4,7 +4,7 @@ const curves = @import("curves.zig");
 
 const ShouldRemove = enum { Remove, Keep };
 
-const Event = union(enum) {
+pub const Event = union(enum) {
     action: struct {
         ptr: usize,
         execute: *const fn (usize) void,
@@ -208,25 +208,25 @@ test "Simple Transition" {
     sequencer.tick(10);
 
     // The property should not change as the event has yet to start (recall delay of 20)
-    try std.testing.expectEqual(0, property);
+    try std.testing.expectEqual(@as(f32, 0), property);
 
     // Move the sequencer forward again
     sequencer.tick(30);
 
     // The property should be at t=0.2 (i.e. 20 frames into the animation)
-    try std.testing.expectEqual(2, property);
+    try std.testing.expectEqual(@as(f32, 2), property);
 
     // Move the sequencer forward again
     sequencer.tick(50);
 
     // The property should be at t=0.7 (i.e. 70 frames into the animation)
-    try std.testing.expectEqual(7, property);
+    try std.testing.expectEqual(@as(f32, 7), property);
 
     // Move the sequencer forward again
     sequencer.tick(500);
 
     // The property should be at t=1 (i.e. animation finished)
-    try std.testing.expectEqual(10, property);
+    try std.testing.expectEqual(@as(f32, 10), property);
 }
 
 //
@@ -312,9 +312,9 @@ test "Multi-Event Transitions" {
     sequencer.tick(100);
 
     // Check the values
-    try std.testing.expectEqual(50, testObj.value);
+    try std.testing.expectEqual(@as(f32, 50), testObj.value);
     try std.testing.expectEqual(Vec2{ .x = 6, .y = 4 }, testObj.other_value);
 
     // Check empty
-    try std.testing.expectEqual(0, sequencer.event_queue.items.len);
+    try std.testing.expectEqual(@as(usize, 0), sequencer.event_queue.items.len);
 }
