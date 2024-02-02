@@ -1,8 +1,6 @@
 # zig-animation
 A property animation library in Zig.
 
-Zig Version: `0.12.0-dev.1137+fbbccc9d5`
-
 ## Demo 1: Property Interpolation
 Full demo code in [`animator.zig`](src/animator.zig).
 
@@ -12,9 +10,11 @@ const end = Vec2{ .x = 1, .y = 1 };
 
 const anim = Animator(Vec2).init(start, end, EaseInCubicVec2);
 
-try std.testing.expectEqual(EaseInCubicVec2(start, end, 0.5), anim.eval(0.5));
-try std.testing.expectEqual(EaseInCubicVec2(start, end, 0.25), anim.eval(0.25));
-try std.testing.expectEqual(EaseInCubicVec2(start, end, 0.75), anim.eval(0.75));
+// 2D Cubic Easing
+try std.testing.expectEqual(Vec2{ .x = 0.015625, .y = 0.015625 }, anim.eval(0.25));
+try std.testing.expectEqual(Vec2{ .x = 0.125, .y = 0.125 }, anim.eval(0.5));
+try std.testing.expectEqual(Vec2{ .x = 0.421875, .y = 0.421875 }, anim.eval(0.75));
+try std.testing.expectEqual(Vec2{ .x = 1, .y = 1 }, anim.eval(1));
 ```
 
 ## Demo 2: Sequencing
