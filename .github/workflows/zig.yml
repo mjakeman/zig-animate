@@ -1,0 +1,31 @@
+name: CI
+
+on: [push, pull_request]
+
+# Credit: https://github.com/zigimg/zigimg
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{matrix.os}}
+    steps:
+      - name: Prepare git
+        run: |-
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+      - name: Checkout zig-animation
+        uses: actions/checkout@v2
+        with:
+          path: zig-animation
+      - name: Setup Zig
+        uses: goto-bus-stop/setup-zig@v1
+        with:
+          version: master
+      - name: AST Verify
+        run: zig fmt --check --ast-check src/
+        working-directory: zig-animation
+      - name: Run test suite
+        run: zig build test
+        working-directory: zig-animation
