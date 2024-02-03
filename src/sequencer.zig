@@ -32,10 +32,10 @@ pub const Event = union(enum) {
         };
     }
 
-    pub fn create_transition(comptime Data: type, comptime Property: type, ptr: *Data, anim: *const animator.Animator(Property), duration: f32, callback: fn (ptr: *Data, property: Property) void) Event {
+    pub fn create_transition(comptime Data: type, comptime Property: type, ptr: *Data, anim: *animator.Animator(Property), duration: f32, callback: fn (ptr: *Data, property: Property) void) Event {
         const execute_fn = struct {
             fn execute(p: usize, a: usize, t: f32) void {
-                const anim2 = @as(*const animator.Animator(Property), @ptrFromInt(a));
+                const anim2 = @as(*animator.Animator(Property), @ptrFromInt(a));
                 const property = anim2.eval(t);
                 const obj = @as(*Data, @ptrFromInt(p));
                 callback(obj, property);
@@ -67,6 +67,16 @@ pub const Event = union(enum) {
                     return ShouldRemove.Remove;
                 }
                 return ShouldRemove.Keep;
+            },
+        }
+    }
+
+    fn deinit(self: *Event) void {
+        switch (self.*) {
+            Event.action => {},
+            Event.transition => {
+                var anim = @as(*animator.Animator(f32), @ptrFromInt(self.transition.animator));
+                anim.deinit();
             },
         }
     }
@@ -113,8 +123,11 @@ pub const Sequencer = struct {
         // Go in reverse order to avoid going out of bounds
         for (0..toRemove.items.len) |el| {
             const index = toRemove.items[toRemove.items.len - 1 - el];
-            _ = self.event_queue.orderedRemove(index);
+            var seq = self.event_queue.orderedRemove(index);
+            seq.event.deinit();
         }
+
+        toRemove.deinit();
     }
 };
 
@@ -188,14 +201,14 @@ test "Simple Transition" {
     }.update_property;
 
     // We animate it from 0 to 10
-    const property_animator = animator.Animator(f32).init(0, 10, curves.Linear);
+    const property_animator = animator.Animator(f32).init(TestAllocator, 0, 10, curves.Linear);
 
     // Animate over 100 frames, calling 'update_callback' each time the sequencer ticks
     const event = Event.create_transition(
         f32,
         f32,
         &property,
-        &property_animator,
+        property_animator,
         100,
         update_callback,
     );
@@ -268,23 +281,23 @@ test "Multi-Event Transitions" {
     testObj.other_value = Vec2{ .x = 10, .y = 10 };
 
     // Go from 30 to 50 (over 80 frames)
-    const valueAnim = animator.Animator(f32).init(30, 50, curves.EaseInCubic);
+    const valueAnim = animator.Animator(f32).init(TestAllocator, 30, 50, curves.EaseInCubic);
     const valueEvent = Event.create_transition(
         TestObject,
         f32,
         &testObj,
-        &valueAnim,
+        valueAnim,
         80,
         TestObject.update,
     );
 
     // Go from (10, 10) to (6, 4) over 65 frames
-    const otherValueAnim = animator.Animator(Vec2).init(Vec2{ .x = 10, .y = 10 }, Vec2{ .x = 6, .y = 4 }, EaseInCubicVec2);
+    const otherValueAnim = animator.Animator(Vec2).init(TestAllocator, Vec2{ .x = 10, .y = 10 }, Vec2{ .x = 6, .y = 4 }, EaseInCubicVec2);
     const otherValueEvent = Event.create_transition(
         TestObject,
         Vec2,
         &testObj,
-        &otherValueAnim,
+        otherValueAnim,
         65,
         TestObject.update_other,
     );
