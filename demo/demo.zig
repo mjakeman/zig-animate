@@ -40,23 +40,23 @@ pub fn main() !void {
     testObj.other_value = Vec4{ .x = 10, .y = 10, .z = 10, .w = 10 };
 
     // Go from 30 to 50
-    const valueAnim = animate.Animator(f32).init(30, 50, animate.curves.EaseInCubic);
+    const valueAnim = animate.Animator(f32).init(std.heap.page_allocator, 30, 50, animate.curves.EaseInCubic);
     const valueEvent = animate.Event.create_transition(
         MyObject,
         f32,
         &testObj,
-        &valueAnim,
+        valueAnim,
         100,
         MyObject.update,
     );
 
     // Go from (10, 10, 10, 10) to (6, 4, 6, 4)
-    const otherValueAnim = animate.Animator(Vec4).init(Vec4{ .x = 10, .y = 10, .z = 10, .w = 10 }, Vec4{ .x = 6, .y = 4, .z = 6, .w = 4 }, EaseInCubicVec4);
+    const otherValueAnim = animate.Animator(Vec4).init(std.heap.page_allocator, Vec4{ .x = 10, .y = 10, .z = 10, .w = 10 }, Vec4{ .x = 6, .y = 4, .z = 6, .w = 4 }, EaseInCubicVec4);
     const otherValueEvent = animate.Event.create_transition(
         MyObject,
         Vec4,
         &testObj,
-        &otherValueAnim,
+        otherValueAnim,
         100,
         MyObject.update_other,
     );

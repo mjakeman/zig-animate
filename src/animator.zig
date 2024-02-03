@@ -12,16 +12,23 @@ inline fn clamp(x: f32, min: f32, max: f32) f32 {
 
 pub fn Animator(comptime T: type) type {
     return struct {
+        allocator: std.mem.Allocator,
         easing_func: *const fn (T, T, f32) T, // See zig
         start: T,
         end: T,
 
-        pub fn init(start: T, end: T, easing_func: *const fn (T, T, f32) T) Animator(T) {
-            return Animator(T){
-                .easing_func = easing_func,
-                .start = start,
-                .end = end,
-            };
+        pub fn init(allocator: std.mem.Allocator, start: T, end: T, easing_func: *const fn (T, T, f32) T) *Animator(T) {
+            var anim = allocator.create(Animator(T)) catch @panic("Could not allocate animator");
+            anim.allocator = allocator;
+            anim.easing_func = easing_func;
+            anim.start = start;
+            anim.end = end;
+
+            return anim;
+        }
+
+        pub fn deinit(self: *Animator(T)) void {
+            self.allocator.destroy(self);
         }
 
         pub fn eval(animator: *const Animator(T), t: f32) T {
@@ -40,6 +47,8 @@ pub fn animate(T: type, start: T, end: T, easing_func: fn (T, T, T) T) Animator(
 
 // TESTS
 
+const TestAllocator = std.heap.page_allocator;
+
 fn EaseInCubic(a: f32, b: f32, t: f32) f32 {
     return a + (b - a) * t * t * t;
 }
@@ -48,7 +57,7 @@ test "f32 Animator" {
     const start = 0;
     const end = 1;
 
-    const anim = Animator(f32).init(start, end, EaseInCubic);
+    const anim = Animator(f32).init(TestAllocator, start, end, EaseInCubic);
 
     try std.testing.expectEqual(EaseInCubic(start, end, 0.5), anim.eval(0.5));
     try std.testing.expectEqual(EaseInCubic(start, end, 0.25), anim.eval(0.25));
@@ -71,7 +80,7 @@ test "Vec2 Animator" {
     const start = Vec2{ .x = 0, .y = 0 };
     const end = Vec2{ .x = 1, .y = 1 };
 
-    const anim = Animator(Vec2).init(start, end, EaseInCubicVec2);
+    const anim = Animator(Vec2).init(TestAllocator, start, end, EaseInCubicVec2);
 
     try std.testing.expectEqual(Vec2{ .x = 0.015625, .y = 0.015625 }, anim.eval(0.25));
     try std.testing.expectEqual(Vec2{ .x = 0.125, .y = 0.125 }, anim.eval(0.5));
@@ -102,7 +111,7 @@ test "Vec5 Animator" {
     const start = Vec5{ .x = 0, .y = 0, .z = 0, .w = 0, .v = 0 };
     const end = Vec5{ .x = 1, .y = 1, .z = 1, .w = 1, .v = 1 };
 
-    const anim = Animator(Vec5).init(start, end, EaseInCubicVec5);
+    const anim = Animator(Vec5).init(TestAllocator, start, end, EaseInCubicVec5);
 
     try std.testing.expectEqual(EaseInCubicVec5(start, end, 0.5), anim.eval(0.5));
     try std.testing.expectEqual(EaseInCubicVec5(start, end, 0.25), anim.eval(0.25));
